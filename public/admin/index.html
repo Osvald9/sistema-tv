@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel TV Playback | Admin</title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 20.25h12m-7.5-3v3m3-3v3m-10.125-3h14.25c.621 0 1.125-.504 1.125-1.125V4.875c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125z" />
+          </svg>
+        </div>
+        <div>
+          <h1>Painel TV Playback</h1>
+          <p class="subtitle">Gerenciador de vídeos corporativos e comerciais</p>
+        </div>
+      </div>
+      
+      <!-- Seletor de Playlist -->
+      <div class="playlist-selector">
+        <label for="playlist-id-input">Playlist Ativa:</label>
+        <div class="selector-input-group">
+          <input type="text" id="playlist-id-input" value="loja-01" placeholder="Ex: loja-01, recepcao" autocomplete="off">
+          <button id="btn-load-playlist" class="btn-primary">Carregar</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="admin-grid">
+      
+      <!-- Coluna Esquerda: Upload & Links -->
+      <section class="admin-card upload-section">
+        <h2>Adicionar Vídeos</h2>
+        <p class="card-desc">Arraste seus vídeos em formato MP4 ou WebM para iniciar o upload automático.</p>
+        
+        <!-- Área de Drag & Drop -->
+        <div class="drop-zone" id="drop-zone">
+          <svg class="drop-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+          </svg>
+          <span class="drop-text">Arraste os vídeos aqui ou <span class="browse-link">procure no computador</span></span>
+          <input type="file" id="file-input" multiple accept="video/mp4,video/webm,video/ogg,video/quicktime" style="display: none;">
+        </div>
+
+        <!-- Lista de Progresso de Upload -->
+        <div class="upload-progress-list" id="upload-progress-list">
+          <!-- Gerado dinamicamente -->
+        </div>
+
+        <!-- Link de Reprodução da TV -->
+        <div class="tv-link-box">
+          <div class="tv-link-header">
+            <h3>Link de Exibição da TV</h3>
+            <span class="badge">Fixo</span>
+          </div>
+          <p class="tv-link-desc">Configure a Smart TV ou TV Box para abrir este link em tela cheia.</p>
+          <div class="link-input-group">
+            <input type="text" id="tv-player-url" readonly value="">
+            <button id="btn-copy-url" title="Copiar Link">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376A8.965 8.965 0 0012 12.75c-.497 0-.982.04-1.455.12l-.01.002m4.905 4.354l-.012-.002A8.967 8.967 0 0118 12.75c0-2.015-.664-3.874-1.787-5.375M18 12.75a8.965 8.965 0 00-1.787-5.374M18 12.75a8.965 8.965 0 01-1.787 5.374M12 9V5.25m0 3.75a3 3 0 100-6 3 3 0 000 6z" />
+              </svg>
+            </button>
+            <a id="btn-open-player" target="_blank" title="Abrir Player" class="btn-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Coluna Direita: Playlist e Reordenamento -->
+      <section class="admin-card playlist-section">
+        <div class="playlist-header">
+          <div>
+            <h2>Fila de Reprodução</h2>
+            <p class="card-desc">Gerencie a ordem, ative/desative ou remova os vídeos da TV.</p>
+          </div>
+          <div class="version-badge">Versão: <span id="playlist-version">0</span></div>
+        </div>
+
+        <!-- Lista de Vídeos -->
+        <div class="video-list-container">
+          <ul class="video-list" id="video-list">
+            <!-- Gerado dinamicamente -->
+          </ul>
+          <div class="empty-state" id="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-7.5c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125zm0-3h7.5m-7.5 0a1.125 1.125 0 01-1.125-1.125V13.88c0-.621.504-1.125 1.125-1.125h7.5c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125zm0-3h7.5m-7.5 0a1.125 1.125 0 01-1.125-1.125V10.5c0-.621.504-1.125 1.125-1.125h7.5c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125zm0-3h7.5m-7.5 0a1.125 1.125 0 01-1.125-1.125V7.12c0-.621.504-1.125 1.125-1.125h7.5c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125zm0-3h7.5m-7.5 0A1.125 1.125 0 012.25 3.75v1.5c0 .621.504 1.125 1.125 1.125h7.5c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-7.5zM12 18.75h9m-9-3h9m-9-3h9m-9-3h9m-9-3h9" />
+            </svg>
+            <p>Nenhum vídeo nesta playlist.</p>
+            <p class="sub-text">Arraste arquivos na zona de upload à esquerda para começar.</p>
+          </div>
+        </div>
+
+        <!-- Rodapé da Fila -->
+        <div class="playlist-footer">
+          <div class="totals-info">
+            <span id="active-count">0</span> ativos de <span id="total-count">0</span> vídeos
+          </div>
+          <button id="btn-save-playlist" class="btn-success">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="btn-icon-svg">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            Salvar Alterações
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="../config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

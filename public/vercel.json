@@ -1,0 +1,9 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/player/:id",
+      "destination": "/player/index.html"
+    }
+  ]
+}
