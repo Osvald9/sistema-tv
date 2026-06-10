@@ -37,6 +37,9 @@ function init() {
   if (supabaseClient) {
     pollInterval = setInterval(checkPlaylistUpdates, 30000);
   }
+
+  // Inicializa o controle de tela cheia com auto-hide
+  setupFullscreenControls();
 }
 
 if (document.readyState === 'loading') {
@@ -244,4 +247,61 @@ function showOverlay(title, desc, showSpinner = false) {
 
 function hideOverlay() {
   statusOverlay.classList.remove('active');
+}
+
+// --- CONTROLE DE TELA CHEIA E MOUSE AUTO-HIDE ---
+
+function setupFullscreenControls() {
+  const btn = document.getElementById('btn-fullscreen');
+  if (!btn) return;
+
+  btn.addEventListener('click', toggleFullscreen);
+
+  let mouseTimeout;
+  
+  function showCursorAndButton() {
+    document.body.classList.add('show-cursor');
+    btn.classList.add('visible');
+    
+    clearTimeout(mouseTimeout);
+    mouseTimeout = setTimeout(() => {
+      document.body.classList.remove('show-cursor');
+      btn.classList.remove('visible');
+    }, 3000); // Esconde após 3 segundos sem movimento
+  }
+
+  // Monitora movimento do mouse/controle
+  window.addEventListener('mousemove', showCursorAndButton);
+  window.addEventListener('click', showCursorAndButton);
+  window.addEventListener('touchstart', showCursorAndButton);
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement && 
+      !document.webkitFullscreenElement && 
+      !document.mozFullScreenElement && 
+      !document.msFullscreenElement) {
+    // Entra em tela cheia
+    const docEl = document.documentElement;
+    if (docEl.requestFullscreen) {
+      docEl.requestFullscreen();
+    } else if (docEl.webkitRequestFullscreen) {
+      docEl.webkitRequestFullscreen();
+    } else if (docEl.mozRequestFullScreen) {
+      docEl.mozRequestFullScreen();
+    } else if (docEl.msRequestFullscreen) {
+      docEl.msRequestFullscreen();
+    }
+  } else {
+    // Sai da tela cheia
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen();
+    }
+  }
 }
