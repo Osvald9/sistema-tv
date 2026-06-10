@@ -402,14 +402,14 @@ async function uploadFiles(files) {
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-    const isVideo = file.type.startsWith('video/') || ['.mp4', '.webm', '.ogg', '.mov'].includes(fileExt);
-    if (isVideo) {
+    const isMp4 = file.type === 'video/mp4' || fileExt === '.mp4';
+    if (isMp4) {
       validFiles.push(file);
     }
   }
 
   if (validFiles.length === 0) {
-    showToast('Por favor, selecione apenas arquivos de vídeo válidos.', 'error');
+    showToast('Por favor, selecione apenas arquivos de vídeo no formato MP4.', 'error');
     return;
   }
 
