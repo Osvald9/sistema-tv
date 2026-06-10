@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/player/:path*",
-      "destination": "/player/index.html"
+      "destination": "/player"
     }
   ]
 }
