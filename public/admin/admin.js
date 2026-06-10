@@ -2,7 +2,7 @@
 let currentPlaylistId = 'loja-01';
 let playlistVideos = []; // Fila de vídeos na memória do navegador
 let playlistVersion = 0;
-let supabase = null;
+let supabaseClient = null;
 
 // Elementos da DOM
 const playlistIdInput = document.getElementById('playlist-id-input');
@@ -27,7 +27,7 @@ function init() {
   initSupabase();
 
   // Carrega a playlist inicial
-  if (supabase) {
+  if (supabaseClient) {
     loadPlaylist(currentPlaylistId);
   }
   
@@ -108,7 +108,7 @@ function initSupabase() {
   }
 
   try {
-    supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   } catch (err) {
     console.error('Erro ao instanciar cliente Supabase:', err);
     showToast('Erro crítico ao inicializar o Supabase SDK.', 'error');
@@ -116,7 +116,7 @@ function initSupabase() {
 }
 
 function checkSupabaseInitialized() {
-  if (!supabase) {
+  if (!supabaseClient) {
     showToast('Erro: Supabase não está configurado. Verifique o arquivo public/config.js', 'error');
     return false;
   }
@@ -153,7 +153,7 @@ async function loadPlaylist(id) {
 
   try {
     // Busca registro único na tabela 'playlists'
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('playlists')
       .select('*')
       .eq('id', normalizedId)
@@ -169,7 +169,7 @@ async function loadPlaylist(id) {
         videos: []
       };
       
-      const { error: insertError } = await supabase
+      const { error: insertError } = await supabaseClient
         .from('playlists')
         .insert([newPlaylist]);
 
@@ -327,7 +327,7 @@ window.deleteVideo = async function(videoId, name) {
 
     // 1. Exclui o arquivo físico do Storage
     const storagePath = `${currentPlaylistId}/${video.filename}`;
-    const { error: storageError } = await supabase.storage
+    const { error: storageError } = await supabaseClient.storage
       .from('videos')
       .remove([storagePath]);
 
@@ -340,7 +340,7 @@ window.deleteVideo = async function(videoId, name) {
     playlistVersion += 1;
 
     // 3. Atualiza tabela no banco
-    const { error: dbError } = await supabase
+    const { error: dbError } = await supabaseClient
       .from('playlists')
       .update({
         videos: playlistVideos,
@@ -366,7 +366,7 @@ async function savePlaylistChanges() {
   try {
     playlistVersion += 1;
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('playlists')
       .update({
         videos: playlistVideos,
@@ -439,7 +439,7 @@ async function uploadFiles(files) {
 
     try {
       // Upload para o bucket 'videos' usando o Supabase Storage SDK com monitoramento de progresso
-      const { data, error } = await supabase.storage
+      const { data, error } = await supabaseClient.storage
         .from('videos')
         .upload(storagePath, file, {
           cacheControl: '3600',
@@ -459,7 +459,7 @@ async function uploadFiles(files) {
       if (error) throw error;
 
       // Obtém o link público da URL do vídeo enviado
-      const { data: urlData } = supabase.storage
+      const { data: urlData } = supabaseClient.storage
         .from('videos')
         .getPublicUrl(storagePath);
 
@@ -481,7 +481,7 @@ async function uploadFiles(files) {
       playlistVersion += 1;
 
       // Grava atualização no Banco de Dados
-      const { error: dbError } = await supabase
+      const { error: dbError } = await supabaseClient
         .from('playlists')
         .update({
           videos: playlistVideos,

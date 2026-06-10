@@ -7,7 +7,7 @@ let currentIndex = 0;
 let currentVersion = 0;
 let pendingPlaylistUpdate = null; // Guarda atualizações recebidas durante a exibição de um vídeo
 let pollInterval = null;
-let supabase = null;
+let supabaseClient = null;
 
 // Elementos da DOM
 const videoEl = document.getElementById('tv-video');
@@ -24,7 +24,7 @@ function init() {
   // Inicializa Cliente Supabase
   initSupabase();
 
-  if (supabase) {
+  if (supabaseClient) {
     // Carrega e inicia o player
     initPlayer();
   }
@@ -34,7 +34,7 @@ function init() {
   videoEl.addEventListener('error', handleVideoError);
 
   // Configura checagem de novas versões a cada 30 segundos
-  if (supabase) {
+  if (supabaseClient) {
     pollInterval = setInterval(checkPlaylistUpdates, 30000);
   }
 }
@@ -57,7 +57,7 @@ function initSupabase() {
   }
 
   try {
-    supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
   } catch (err) {
     console.error('Erro ao instanciar cliente Supabase:', err);
     showOverlay('Erro Crítico', 'Falha ao inicializar o Supabase SDK.', false);
@@ -90,9 +90,9 @@ async function initPlayer() {
 
 // Buscar dados da API do Supabase
 async function fetchPlaylist(id) {
-  if (!supabase) throw new Error('Supabase não inicializado');
+  if (!supabaseClient) throw new Error('Supabase não inicializado');
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('playlists')
     .select('*')
     .eq('id', id)
@@ -201,7 +201,7 @@ function handleVideoError(e) {
 
 // Checagem de atualizações em background (Polling)
 async function checkPlaylistUpdates() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
 
   try {
     const data = await fetchPlaylist(playlistId);
