@@ -1,4 +1,4 @@
-// Configurações do Supabase - Sistema de TV Playback
+// Configurações do Supabase - TV Conexão Vip
 // Substitua os valores abaixo pelas credenciais do seu projeto Supabase (Project Settings -> API)
 
 window.SUPABASE_URL = "https://ndbhrftgnwgzetjadurd.supabase.co";
