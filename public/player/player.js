@@ -8,6 +8,7 @@ let currentVersion = 0;
 let pendingPlaylistUpdate = null; // Guarda atualizações recebidas durante a exibição de um vídeo
 let pollInterval = null;
 let supabaseClient = null;
+let preloaderVideoEl = null;
 
 // Elementos da DOM
 const videoEl = document.getElementById('tv-video');
@@ -155,6 +156,9 @@ function playVideo(index) {
       });
     });
   }
+
+  // Precarrega o próximo vídeo em background para evitar travamentos
+  preloadNextVideo(currentIndex);
 }
 
 // Handler para o término do vídeo (Avança na fila)
@@ -310,4 +314,28 @@ function toggleFullscreen() {
       document.msExitFullscreen();
     }
   }
+}
+
+// --- PRE-CARREGAMENTO (PRELOAD) EM SEGUNDO PLANO ---
+
+function preloadNextVideo(currentIndex) {
+  if (currentVideos.length <= 1) return;
+
+  const nextIndex = (currentIndex + 1) % currentVideos.length;
+  const nextVideo = currentVideos[nextIndex];
+  if (!nextVideo || !nextVideo.url) return;
+
+  console.log(`Precarregando em background o próximo vídeo: ${nextVideo.originalname}`);
+
+  if (!preloaderVideoEl) {
+    preloaderVideoEl = document.createElement('video');
+    preloaderVideoEl.style.display = 'none';
+    preloaderVideoEl.muted = true;
+    preloaderVideoEl.preload = 'auto';
+    document.body.appendChild(preloaderVideoEl);
+  }
+
+  // Define a origem e força o navegador a baixar em cache o arquivo
+  preloaderVideoEl.src = nextVideo.url;
+  preloaderVideoEl.load();
 }
