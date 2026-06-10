@@ -9,6 +9,49 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/admin/admin.css">
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      setTimeout(function() {
+        var div = document.createElement('div');
+        div.style.position = 'fixed';
+        div.style.top = '0';
+        div.style.left = '0';
+        div.style.width = '100%';
+        div.style.backgroundColor = '#ff3333';
+        div.style.color = 'white';
+        div.style.padding = '15px';
+        div.style.zIndex = '999999';
+        div.style.fontFamily = 'monospace';
+        div.style.fontSize = '13px';
+        div.style.fontWeight = 'bold';
+        div.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+        div.style.whiteSpace = 'pre-wrap';
+        div.innerHTML = '<strong>Erro de Script:</strong> ' + message + '<br>Arquivo: ' + source + ' (Linha: ' + lineno + ')';
+        document.body.appendChild(div);
+      }, 500);
+      return false;
+    };
+    window.addEventListener('unhandledrejection', function(event) {
+      setTimeout(function() {
+        var div = document.createElement('div');
+        div.style.position = 'fixed';
+        div.style.top = '0';
+        div.style.left = '0';
+        div.style.width = '100%';
+        div.style.backgroundColor = '#ff9900';
+        div.style.color = 'black';
+        div.style.padding = '15px';
+        div.style.zIndex = '999999';
+        div.style.fontFamily = 'monospace';
+        div.style.fontSize = '13px';
+        div.style.fontWeight = 'bold';
+        div.style.boxShadow = '0 4px 6px rgba(0,0,0,0.3)';
+        div.style.whiteSpace = 'pre-wrap';
+        div.innerHTML = '<strong>Erro Promessa Rejeitada:</strong> ' + (event.reason ? event.reason.message || event.reason : 'Erro desconhecido');
+        document.body.appendChild(div);
+      }, 500);
+    });
+  </script>
 </head>
 <body>
   <div class="admin-container">
