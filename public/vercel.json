@@ -1,12 +1,5 @@
 {
   "cleanUrls": true,
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/admin/",
-      "statusCode": 308
-    }
-  ],
   "rewrites": [
     {
       "source": "/player/:id",
