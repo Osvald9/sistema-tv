@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/player/:id",
+      "source": "/player/:path*",
       "destination": "/player/index.html"
     }
   ]
