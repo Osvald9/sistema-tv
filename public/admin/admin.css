@@ -715,3 +715,116 @@ button, .btn-icon {
 .toast.warning {
   border-left-color: var(--color-warning);
 }
+
+/* Tela de Login */
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 1.5rem;
+}
+
+.login-card {
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.login-logo-area {
+  background-color: var(--color-danger);
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-neon);
+}
+
+.login-logo-area svg {
+  width: 30px;
+  height: 30px;
+}
+
+.login-card h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.02em;
+}
+
+.login-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.login-field-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.login-field-group label {
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.login-field-group input {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  transition: var(--transition-fast);
+  width: 100%;
+}
+
+.login-field-group input:focus {
+  outline: none;
+  border-color: var(--border-color-focus);
+  box-shadow: 0 0 0 2px rgba(251, 191, 6, 0.2);
+}
+
+/* Botão Sair no Cabeçalho */
+.btn-logout-header {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  margin-left: 0.5rem;
+}
+
+.btn-logout-header:hover {
+  background-color: rgba(253, 2, 2, 0.08);
+  border-color: rgba(253, 2, 2, 0.3);
+  color: var(--color-danger);
+}
+
+.btn-logout-header svg {
+  width: 16px;
+  height: 16px;
+}
+

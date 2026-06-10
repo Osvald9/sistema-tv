@@ -21,17 +21,72 @@ const totalCountEl = document.getElementById('total-count');
 const btnSavePlaylist = document.getElementById('btn-save-playlist');
 const toastContainer = document.getElementById('toast-container');
 
-// Inicialização
-function init() {
-  // Inicializa o Cliente Supabase
-  initSupabase();
+// Verifica Autenticação
+function checkAuth() {
+  const isAuthenticated = localStorage.getItem('tv_conexao_vip_auth') === 'true';
+  const loginContainer = document.getElementById('login-container');
+  const adminContainer = document.querySelector('.admin-container');
+  
+  if (isAuthenticated) {
+    if (loginContainer) loginContainer.style.display = 'none';
+    if (adminContainer) adminContainer.style.display = 'block';
+    
+    // Inicializa o painel real se ainda não foi feito
+    if (!supabaseClient) {
+      initSupabase();
+      if (supabaseClient) {
+        loadPlaylist(currentPlaylistId);
+      }
+    }
+  } else {
+    if (adminContainer) adminContainer.style.display = 'none';
+    if (loginContainer) loginContainer.style.display = 'flex';
+  }
+}
 
-  // Carrega a playlist inicial
-  if (supabaseClient) {
-    loadPlaylist(currentPlaylistId);
+// Configura Formulários de Login/Logout
+function setupLogin() {
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userVal = document.getElementById('username').value.trim();
+      const passVal = document.getElementById('password').value;
+      
+      const correctUser = window.ADMIN_USERNAME || 'admin';
+      const correctPass = window.ADMIN_PASSWORD || '123';
+      
+      if (userVal === correctUser && passVal === correctPass) {
+        localStorage.setItem('tv_conexao_vip_auth', 'true');
+        showToast('Acesso concedido com sucesso!', 'success');
+        checkAuth();
+      } else {
+        showToast('Usuário ou senha incorretos.', 'error');
+      }
+    });
   }
   
-  // Event Listeners
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      localStorage.removeItem('tv_conexao_vip_auth');
+      showToast('Sessão encerrada.', 'success');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    });
+  }
+}
+
+// Inicialização
+function init() {
+  // Verifica se o usuário está logado
+  checkAuth();
+
+  // Configura os eventos de login/logout
+  setupLogin();
+  
+  // Event Listeners do painel restrito
   btnLoadPlaylist.addEventListener('click', () => {
     const targetId = playlistIdInput.value.trim();
     if (targetId) {
