@@ -261,19 +261,25 @@ function setupFullscreenControls() {
   
   function showCursorAndButton() {
     document.body.classList.add('show-cursor');
-    btn.classList.add('visible');
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
     
     clearTimeout(mouseTimeout);
     mouseTimeout = setTimeout(() => {
       document.body.classList.remove('show-cursor');
-      btn.classList.remove('visible');
-    }, 3000); // Esconde após 3 segundos sem movimento
+      btn.style.opacity = '0';
+      btn.style.pointerEvents = 'none';
+    }, 5000); // Esconde após 5 segundos sem interação
   }
 
-  // Monitora movimento do mouse/controle
+  // Exibe o botão no carregamento inicial
+  showCursorAndButton();
+
+  // Monitora movimento do mouse/controle, cliques e teclas do controle da TV
   window.addEventListener('mousemove', showCursorAndButton);
   window.addEventListener('click', showCursorAndButton);
   window.addEventListener('touchstart', showCursorAndButton);
+  window.addEventListener('keydown', showCursorAndButton);
 }
 
 function toggleFullscreen() {

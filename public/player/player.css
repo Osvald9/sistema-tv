@@ -123,12 +123,12 @@ body.show-cursor, body.show-cursor * {
 /* Botão Flutuante de Tela Cheia */
 .fullscreen-btn {
   position: fixed;
-  bottom: 25px;
-  right: 25px;
-  width: 54px;
-  height: 54px;
-  background-color: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  top: 40px; /* Afastado das bordas para evitar corte em TVs (Overscan) */
+  right: 40px;
+  width: 68px; /* Maior e mais visível para TV */
+  height: 68px;
+  background-color: #6366f1; /* Roxo vibrante bem visível */
+  border: 2px solid #ffffff;
   border-radius: 50%;
   color: #ffffff;
   display: flex;
@@ -139,9 +139,9 @@ body.show-cursor, body.show-cursor * {
   transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, background-color 0.2s ease;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  pointer-events: none;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+  opacity: 1; /* Visível por padrão ao carregar a página */
+  pointer-events: auto;
 }
 
 .fullscreen-btn.visible {
