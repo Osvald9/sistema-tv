@@ -127,7 +127,7 @@ body.show-cursor, body.show-cursor * {
   right: 40px;
   width: 68px; /* Maior e mais visível para TV */
   height: 68px;
-  background: linear-gradient(135deg, #fbbf06, #fd0202);
+  background-color: #fd0202;
   border: 2px solid #ffffff;
   border-radius: 50%;
   color: #ffffff;
@@ -136,7 +136,7 @@ body.show-cursor, body.show-cursor * {
   justify-content: center;
   cursor: pointer;
   z-index: 999999;
-  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, background-color 0.2s ease;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 8px 24px rgba(253, 2, 2, 0.4);
@@ -150,7 +150,8 @@ body.show-cursor, body.show-cursor * {
 }
 
 .fullscreen-btn:hover {
-  background: linear-gradient(135deg, #fd0202, #fbbf06);
+  background-color: #fbbf06;
+  color: #0f172a;
   transform: scale(1.1);
   border-color: rgba(255, 255, 255, 0.3);
 }

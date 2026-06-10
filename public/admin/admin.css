@@ -73,7 +73,7 @@ body {
 }
 
 .logo-icon {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-danger));
+  background-color: var(--color-danger);
   width: 48px;
   height: 48px;
   border-radius: var(--radius-md);
@@ -93,9 +93,7 @@ body {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.025em;
-  background: linear-gradient(to right, #0f172a, #334155);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .subtitle {
@@ -276,7 +274,7 @@ body {
 }
 
 .progress-bar-fill {
-  background: linear-gradient(to right, var(--color-primary), var(--color-danger));
+  background-color: var(--color-danger);
   height: 100%;
   width: 0%;
   border-radius: 3px;

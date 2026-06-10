@@ -5,7 +5,6 @@ const playlistId = pathParts[pathParts.length - 1] || 'loja-01';
 let currentVideos = [];
 let currentIndex = 0;
 let currentVersion = 0;
-let pendingPlaylistUpdate = null; // Guarda atualizações recebidas durante a exibição de um vídeo
 let pollInterval = null;
 let supabaseClient = null;
 let preloaderVideoEl = null;
@@ -165,24 +164,6 @@ function playVideo(index) {
 function handleVideoEnded() {
   console.log('Vídeo finalizado.');
 
-  // Se houver uma atualização de playlist pendente, nós aplicamos agora na transição
-  if (pendingPlaylistUpdate) {
-    console.log('Aplicando atualização de playlist pendente...');
-    currentVideos = pendingPlaylistUpdate.videos;
-    currentVersion = pendingPlaylistUpdate.version;
-    pendingPlaylistUpdate = null;
-    
-    if (currentVideos.length === 0) {
-      showOverlay('Nenhum Vídeo Encontrado', 'A playlist foi esvaziada ou desativada no painel de controle.', false);
-      videoEl.src = '';
-      return;
-    }
-    
-    currentIndex = 0;
-    playVideo(currentIndex);
-    return;
-  }
-
   if (currentVideos.length > 0) {
     currentIndex = (currentIndex + 1) % currentVideos.length;
     playVideo(currentIndex);
@@ -216,18 +197,32 @@ async function checkPlaylistUpdates() {
     if (data.version !== currentVersion) {
       console.log(`Nova versão de playlist detectada no Supabase: ${data.version} (Atual: ${currentVersion})`);
       
-      // Se o player estava parado sem vídeos, aplica imediatamente
+      const oldPlayingVideoId = currentVideos[currentIndex]?.id;
+      
+      currentVideos = data.videos || [];
+      currentVersion = data.version;
+      
       if (currentVideos.length === 0) {
-        currentVideos = data.videos || [];
-        currentVersion = data.version;
-        if (currentVideos.length > 0) {
-          hideOverlay();
-          currentIndex = 0;
-          playVideo(currentIndex);
-        }
+        showOverlay('Nenhum Vídeo Ativo', 'Adicione e ative vídeos no painel de controle desta TV para iniciar a transmissão.', false);
+        videoEl.src = '';
+        return;
+      }
+      
+      hideOverlay();
+      
+      // Verifica se o vídeo que estava tocando ainda está ativo e na lista
+      const newIndex = currentVideos.findIndex(v => v.id === oldPlayingVideoId);
+      
+      if (newIndex !== -1) {
+        // O vídeo ainda está ativo. Ajustamos o índice para manter a reprodução sem interrupção
+        currentIndex = newIndex;
+        console.log(`Playlist atualizada. Mantendo vídeo atual no novo índice: ${currentIndex}`);
+        preloadNextVideo(currentIndex);
       } else {
-        // Guarda na fila para aplicar de forma suave entre as transições
-        pendingPlaylistUpdate = data;
+        // O vídeo atual foi desativado ou deletado. Paramos e tocamos o primeiro da nova lista imediatamente!
+        console.log('Vídeo atual foi desativado ou deletado. Iniciando reprodução da nova playlist imediatamente.');
+        currentIndex = 0;
+        playVideo(currentIndex);
       }
     }
   } catch (error) {
