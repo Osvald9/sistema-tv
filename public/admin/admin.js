@@ -22,7 +22,7 @@ const btnSavePlaylist = document.getElementById('btn-save-playlist');
 const toastContainer = document.getElementById('toast-container');
 
 // Inicialização
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
   // Inicializa o Cliente Supabase
   initSupabase();
 
@@ -87,7 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Setup do Drag & Drop para a ordenação da lista
   setupDragAndDropSorting();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
 // --- INICIALIZAÇÃO SUPABASE ---
 

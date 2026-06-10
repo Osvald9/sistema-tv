@@ -18,7 +18,7 @@ const spinner = document.getElementById('spinner');
 const tvBadge = document.getElementById('tv-badge');
 
 // Inicialização
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
   tvBadge.textContent = `TV: ${playlistId.toUpperCase()}`;
   
   // Inicializa Cliente Supabase
@@ -37,7 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (supabase) {
     pollInterval = setInterval(checkPlaylistUpdates, 30000);
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
 // --- INICIALIZAÇÃO SUPABASE ---
 
