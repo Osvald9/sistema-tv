@@ -3,6 +3,7 @@ let currentPlaylistId = 'loja-01';
 let playlistVideos = []; // Fila de vídeos na memória do navegador
 let playlistVersion = 0;
 let supabaseClient = null;
+let s3Client = null;
 
 // Elementos da DOM
 const playlistIdInput = document.getElementById('playlist-id-input');
@@ -34,6 +35,7 @@ function checkAuth() {
     // Inicializa o painel real se ainda não foi feito
     if (!supabaseClient) {
       initSupabase();
+      initR2();
       if (supabaseClient) {
         loadPlaylist(currentPlaylistId);
       }
@@ -111,7 +113,7 @@ function init() {
 
   // Drag and Drop Upload Zone
   dropZone.addEventListener('click', () => {
-    if (!checkSupabaseInitialized()) return;
+    if (!checkSupabaseInitialized() || !checkR2Initialized()) return;
     fileInput.click();
   });
   
@@ -132,7 +134,7 @@ function init() {
   });
 
   dropZone.addEventListener('drop', (e) => {
-    if (!checkSupabaseInitialized()) return;
+    if (!checkSupabaseInitialized() || !checkR2Initialized()) return;
     const dt = e.dataTransfer;
     const files = dt.files;
     if (files.length > 0) {
@@ -173,6 +175,41 @@ function initSupabase() {
 function checkSupabaseInitialized() {
   if (!supabaseClient) {
     showToast('Erro: Supabase não está configurado. Verifique o arquivo public/config.js', 'error');
+    return false;
+  }
+  return true;
+}
+
+// --- INICIALIZAÇÃO CLOUDFLARE R2 ---
+
+function initR2() {
+  const isPlaceholderAccountId = !window.R2_ACCOUNT_ID || window.R2_ACCOUNT_ID.includes("SEU_ACCOUNT_ID");
+  const isPlaceholderAccessKey = !window.R2_ACCESS_KEY_ID || window.R2_ACCESS_KEY_ID.includes("SUA_ACCESS_KEY");
+  const isPlaceholderSecretKey = !window.R2_SECRET_ACCESS_KEY || window.R2_SECRET_ACCESS_KEY.includes("SUA_SECRET_ACCESS_KEY");
+
+  if (isPlaceholderAccountId || isPlaceholderAccessKey || isPlaceholderSecretKey) {
+    showToast('Atenção: Configure as credenciais do Cloudflare R2 no arquivo "public/config.js"!', 'warning');
+    return;
+  }
+
+  try {
+    s3Client = new AWS.S3({
+      endpoint: `https://${window.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      accessKeyId: window.R2_ACCESS_KEY_ID,
+      secretAccessKey: window.R2_SECRET_ACCESS_KEY,
+      signatureVersion: 'v4',
+      region: 'auto',
+      s3ForcePathStyle: true
+    });
+  } catch (err) {
+    console.error('Erro ao instanciar cliente Cloudflare R2:', err);
+    showToast('Erro crítico ao inicializar o SDK do Cloudflare R2.', 'error');
+  }
+}
+
+function checkR2Initialized() {
+  if (!s3Client) {
+    showToast('Erro: Cloudflare R2 não está configurado. Verifique o arquivo public/config.js', 'error');
     return false;
   }
   return true;
@@ -369,10 +406,10 @@ window.moveVideo = function(currentIndex, direction) {
   btnSavePlaylist.classList.add('glow');
 };
 
-// Excluir vídeo (Remover do Storage + Database)
+// Excluir vídeo (Remover do Cloudflare R2 + Database)
 window.deleteVideo = async function(videoId, name) {
-  if (!checkSupabaseInitialized()) return;
-  if (!confirm(`Tem certeza que deseja excluir "${name}"? Esta ação removerá o arquivo físico do Storage do Supabase.`)) {
+  if (!checkSupabaseInitialized() || !checkR2Initialized()) return;
+  if (!confirm(`Tem certeza que deseja excluir "${name}"? Esta ação removerá o arquivo físico do Cloudflare R2.`)) {
     return;
   }
 
@@ -380,14 +417,16 @@ window.deleteVideo = async function(videoId, name) {
     const video = playlistVideos.find(v => v.id === videoId);
     if (!video) return;
 
-    // 1. Exclui o arquivo físico do Storage
+    // 1. Exclui o arquivo físico do Cloudflare R2
     const storagePath = `${currentPlaylistId}/${video.filename}`;
-    const { error: storageError } = await supabaseClient.storage
-      .from('videos')
-      .remove([storagePath]);
-
-    if (storageError) {
-      console.warn('Erro ao deletar do Storage (pode ser que já tenha sido deletado):', storageError);
+    try {
+      await s3Client.deleteObject({
+        Bucket: window.R2_BUCKET_NAME,
+        Key: storagePath
+      }).promise();
+      console.log(`Arquivo deletado do R2: ${storagePath}`);
+    } catch (storageError) {
+      console.warn('Erro ao deletar do Cloudflare R2 (pode ser que já tenha sido deletado):', storageError);
     }
 
     // 2. Remove localmente
@@ -441,7 +480,7 @@ async function savePlaylistChanges() {
   }
 }
 
-// --- LÓGICA DE UPLOAD DIRETO PARA SUPABASE STORAGE ---
+// --- LÓGICA DE UPLOAD DIRETO PARA CLOUDFLARE R2 ---
 
 function handleFileSelect(e) {
   const files = e.target.files;
@@ -451,7 +490,7 @@ function handleFileSelect(e) {
 }
 
 async function uploadFiles(files) {
-  if (!checkSupabaseInitialized()) return;
+  if (!checkSupabaseInitialized() || !checkR2Initialized()) return;
 
   const validFiles = [];
   for (let i = 0; i < files.length; i++) {
@@ -493,32 +532,35 @@ async function uploadFiles(files) {
     const storagePath = `${currentPlaylistId}/${uniqueName}`;
 
     try {
-      // Upload para o bucket 'videos' usando o Supabase Storage SDK com monitoramento de progresso
-      const { data, error } = await supabaseClient.storage
-        .from('videos')
-        .upload(storagePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-          // Função nativa do Supabase JS v2 para monitorar uploads em tempo real
-          onUploadProgress: (progressEvent) => {
-            const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-            const percentEl = document.getElementById(`${uploadId}_percent`);
-            const barEl = document.getElementById(`${uploadId}_bar`);
-            if (percentEl && barEl) {
-              percentEl.textContent = percent + '%';
-              barEl.style.width = percent + '%';
-            }
-          }
-        });
+      // Upload para o Cloudflare R2
+      const params = {
+        Bucket: window.R2_BUCKET_NAME,
+        Key: storagePath,
+        Body: file,
+        ContentType: file.type || 'video/mp4'
+      };
 
-      if (error) throw error;
+      const upload = s3Client.upload(params);
 
-      // Obtém o link público da URL do vídeo enviado
-      const { data: urlData } = supabaseClient.storage
-        .from('videos')
-        .getPublicUrl(storagePath);
+      // Função para monitorar upload em tempo real no R2
+      upload.on('httpUploadProgress', (progressEvent) => {
+        const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+        const percentEl = document.getElementById(`${uploadId}_percent`);
+        const barEl = document.getElementById(`${uploadId}_bar`);
+        if (percentEl && barEl) {
+          percentEl.textContent = percent + '%';
+          barEl.style.width = percent + '%';
+        }
+      });
 
-      const publicUrl = urlData.publicUrl;
+      // Aguarda a finalização do upload no R2
+      await upload.promise();
+
+      // Obtém a URL pública do vídeo enviado no R2
+      const cleanPublicBaseUrl = window.R2_PUBLIC_URL.endsWith('/') 
+        ? window.R2_PUBLIC_URL.slice(0, -1) 
+        : window.R2_PUBLIC_URL;
+      const publicUrl = `${cleanPublicBaseUrl}/${storagePath}`;
 
       // Cria a estrutura do objeto de vídeo
       const newVideo = {
@@ -535,7 +577,7 @@ async function uploadFiles(files) {
       playlistVideos.push(newVideo);
       playlistVersion += 1;
 
-      // Grava atualização no Banco de Dados
+      // Grava atualização no Banco de Dados (Supabase)
       const { error: dbError } = await supabaseClient
         .from('playlists')
         .update({

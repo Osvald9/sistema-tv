@@ -7,7 +7,10 @@ let currentIndex = 0;
 let currentVersion = 0;
 let pollInterval = null;
 let supabaseClient = null;
-let preloaderVideoEl = null;
+
+// Configurações de Cache Local
+const CACHE_NAME = 'tv-video-cache-v1';
+let currentBlobUrl = null;
 
 // Elementos da DOM
 const videoEl = document.getElementById('tv-video');
@@ -82,6 +85,10 @@ async function initPlayer() {
     }
     
     hideOverlay();
+    
+    // Limpa arquivos de vídeo antigos do cache que não estão na programação
+    cleanVideoCache();
+
     currentIndex = 0;
     playVideo(currentIndex);
   } catch (error) {
@@ -119,7 +126,7 @@ async function fetchPlaylist(id) {
 }
 
 // Tocar um vídeo pelo index
-function playVideo(index) {
+async function playVideo(index) {
   if (currentVideos.length === 0) return;
   
   if (index >= currentVideos.length) {
@@ -133,7 +140,23 @@ function playVideo(index) {
   const video = currentVideos[currentIndex];
   console.log(`Reproduzindo [${currentIndex + 1}/${currentVideos.length}]: ${video.originalname}`);
   
-  videoEl.src = video.url;
+  // Revoga URL de blob anterior para evitar vazamento de memória
+  if (currentBlobUrl) {
+    URL.revokeObjectURL(currentBlobUrl);
+    currentBlobUrl = null;
+  }
+
+  try {
+    const cachedUrl = await getCachedVideoUrl(video.url);
+    if (cachedUrl.startsWith('blob:')) {
+      currentBlobUrl = cachedUrl;
+    }
+    videoEl.src = cachedUrl;
+  } catch (err) {
+    console.warn('Erro ao obter vídeo do cache, reproduzindo URL direta:', err);
+    videoEl.src = video.url;
+  }
+
   videoEl.load();
 
   const playPromise = videoEl.play();
@@ -201,6 +224,9 @@ async function checkPlaylistUpdates() {
       
       currentVideos = data.videos || [];
       currentVersion = data.version;
+      
+      // Limpa arquivos de vídeo antigos do cache que não estão mais na programação
+      cleanVideoCache();
       
       if (currentVideos.length === 0) {
         showOverlay('Nenhum Vídeo Ativo', 'Adicione e ative vídeos no painel de controle desta TV para iniciar a transmissão.', false);
@@ -313,24 +339,68 @@ function toggleFullscreen() {
 
 // --- PRE-CARREGAMENTO (PRELOAD) EM SEGUNDO PLANO ---
 
-function preloadNextVideo(currentIndex) {
+async function preloadNextVideo(currentIndex) {
   if (currentVideos.length <= 1) return;
 
   const nextIndex = (currentIndex + 1) % currentVideos.length;
   const nextVideo = currentVideos[nextIndex];
   if (!nextVideo || !nextVideo.url) return;
 
-  console.log(`Precarregando em background o próximo vídeo: ${nextVideo.originalname}`);
+  console.log(`Precarregando em cache o próximo vídeo: ${nextVideo.originalname}`);
 
-  if (!preloaderVideoEl) {
-    preloaderVideoEl = document.createElement('video');
-    preloaderVideoEl.style.display = 'none';
-    preloaderVideoEl.muted = true;
-    preloaderVideoEl.preload = 'auto';
-    document.body.appendChild(preloaderVideoEl);
+  try {
+    // Isso força o download e cacheamento do arquivo de vídeo se não estiver em cache
+    await getCachedVideoUrl(nextVideo.url);
+  } catch (err) {
+    console.warn(`Falha ao precarregar cache do vídeo ${nextVideo.originalname}:`, err);
   }
+}
 
-  // Define a origem e força o navegador a baixar em cache o arquivo
-  preloaderVideoEl.src = nextVideo.url;
-  preloaderVideoEl.load();
+// --- SISTEMA DE CACHE LOCAL (CACHE API) ---
+
+// Função para buscar vídeo e armazenar no Cache Storage
+async function getCachedVideoUrl(url) {
+  if (!('caches' in window)) return url;
+  
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    let response = await cache.match(url);
+    
+    if (!response) {
+      console.log(`Vídeo não está no cache local. Baixando: ${url}`);
+      const fetchResponse = await fetch(url);
+      if (!fetchResponse.ok) throw new Error(`Falha no download: ${fetchResponse.statusText}`);
+      
+      // Armazena no cache
+      await cache.put(url, fetchResponse.clone());
+      response = fetchResponse;
+    } else {
+      console.log(`Vídeo carregado do cache local (Economia de Banda!): ${url}`);
+    }
+    
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+  } catch (e) {
+    console.warn('Erro na Cache API, usando URL direta:', e);
+    return url;
+  }
+}
+
+// Função para limpar vídeos antigos que não estão mais na playlist
+async function cleanVideoCache() {
+  if (!('caches' in window)) return;
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const keys = await cache.keys();
+    const activeUrls = currentVideos.map(v => v.url);
+    
+    for (const request of keys) {
+      if (!activeUrls.includes(request.url)) {
+        console.log(`Limpando vídeo antigo do cache local: ${request.url}`);
+        await cache.delete(request);
+      }
+    }
+  } catch (e) {
+    console.warn('Erro ao limpar cache local:', e);
+  }
 }
