@@ -25,14 +25,17 @@ html, body {
   justify-content: center;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
 video {
-  width: 100%;
-  height: 100%;
+  width: 100vh !important;
+  height: 100vw !important;
   display: block;
-  object-fit: contain; /* Preserva o aspect-ratio original do vídeo com barras pretas nas laterais. Mude para 'cover' se quiser esticar/cortar para tela cheia total. */
+  object-fit: contain; /* Preserva o aspect-ratio original do vídeo com barras pretas nas laterais. */
   background-color: #000000;
+  transform: rotate(-90deg) !important;
+  transform-origin: center !important;
 }
 
 /* Overlay de Status */

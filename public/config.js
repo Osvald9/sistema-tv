@@ -16,3 +16,4 @@ window.R2_SECRET_ACCESS_KEY = "4d71ae3ebc1889e952edcb02c4cb512279dfb3372c9471f6a
 window.R2_PUBLIC_URL = "https://pub-1c0615a10cb740a1a4f76cc61465ad07.r2.dev"; // URL Pública do R2 ou domínio customizado
 
 
+
