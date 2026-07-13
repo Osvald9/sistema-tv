@@ -219,37 +219,8 @@ async function checkPlaylistUpdates() {
     
     if (data.version !== currentVersion) {
       console.log(`Nova versão de playlist detectada no Supabase: ${data.version} (Atual: ${currentVersion})`);
-      
-      const oldPlayingVideoId = currentVideos[currentIndex]?.id;
-      
-      currentVideos = data.videos || [];
-      currentVersion = data.version;
-      
-      // Limpa arquivos de vídeo antigos do cache que não estão mais na programação
-      cleanVideoCache();
-      
-      if (currentVideos.length === 0) {
-        showOverlay('Nenhum Vídeo Ativo', 'Adicione e ative vídeos no painel de controle desta TV para iniciar a transmissão.', false);
-        videoEl.src = '';
-        return;
-      }
-      
-      hideOverlay();
-      
-      // Verifica se o vídeo que estava tocando ainda está ativo e na lista
-      const newIndex = currentVideos.findIndex(v => v.id === oldPlayingVideoId);
-      
-      if (newIndex !== -1) {
-        // O vídeo ainda está ativo. Ajustamos o índice para manter a reprodução sem interrupção
-        currentIndex = newIndex;
-        console.log(`Playlist atualizada. Mantendo vídeo atual no novo índice: ${currentIndex}`);
-        preloadNextVideo(currentIndex);
-      } else {
-        // O vídeo atual foi desativado ou deletado. Paramos e tocamos o primeiro da nova lista imediatamente!
-        console.log('Vídeo atual foi desativado ou deletado. Iniciando reprodução da nova playlist imediatamente.');
-        currentIndex = 0;
-        playVideo(currentIndex);
-      }
+      // Recarrega a página inteira para limpar o estado e aplicar a nova playlist do início.
+      window.location.reload();
     }
   } catch (error) {
     console.warn('Erro ao checar atualizações em background no Supabase:', error);
