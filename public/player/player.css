@@ -34,7 +34,7 @@ video {
   display: block;
   object-fit: contain; /* Preserva o aspect-ratio original do vídeo com barras pretas nas laterais. */
   background-color: #000000;
-  transform: rotate(-90deg) !important;
+  transform: rotate(90deg) !important;
   transform-origin: center !important;
 }
 
